@@ -10,7 +10,11 @@ const port = process.env.PORT || 5000;
 
 // middleware
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: [
+    // 'http://localhost:5173'
+    'https://user-email-password-auth-58e98.web.app',
+    'https://user-email-password-auth-58e98.firebaseapp.com/'
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -36,7 +40,7 @@ const logger = async(req,res, next) =>{
 
 const verifyToken = async(req,res, next)=>{
   const token = req.cookies?.token;
-  console.log('token in middleware', token)
+  //console.log('token in middleware', token)
   if(!token){
     return res.status(401).send({message: 'Not Authorized'})
   }
@@ -65,18 +69,26 @@ async function run() {
     //Auth related Api
     app.post('/jwt', logger, async(req,res)=>{
       const user = req.body;
-      console.log(user);
+      console.log('user for token',user);
 
       //token generating
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+      //res.send({token});
       res
       //set token in cookie
       .cookie('token', token, {
         httpOnly: true,
-        secure: false,
+        secure: true,
+        sameSite: 'none'
         
       })
       .send({success: true});
+    })
+
+    app.post('/logout', async(req,res)=>{
+      const user = req.body;
+      console.log('logging Out', user);
+      res.clearCookie('token',{maxAge: 0}).send({success: true})
     })
 
 
