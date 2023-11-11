@@ -11,9 +11,9 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors({
   origin: [
-    // 'http://localhost:5173'
-    'https://user-email-password-auth-58e98.web.app',
-    'https://user-email-password-auth-58e98.firebaseapp.com/'
+     'http://localhost:5173',
+    // 'https://user-email-password-auth-58e98.web.app',
+    // 'https://user-email-password-auth-58e98.firebaseapp.com'
   ],
   credentials: true
 }));
@@ -54,8 +54,6 @@ const verifyToken = async(req,res, next)=>{
     next()
   })
 
- 
-
 }
 
 async function run() {
@@ -94,7 +92,19 @@ async function run() {
 
     //Services related API
     app.get('/services',logger, async (req, res) => {
-      const cursor = serviceCollection.find();
+      const filter = req.query;
+      console.log(filter);
+      const query = {
+       // price: {$lt: 150, $gt: 10}
+        title: {$regex: filter.search, $options: 'i'}
+      };
+      const options = {
+        sort: {
+           price: filter.sort==='asc'?1:-1
+          
+        }
+      }
+      const cursor = serviceCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result);
     })
